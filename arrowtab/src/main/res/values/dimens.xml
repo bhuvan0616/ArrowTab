@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ArrowTab">
+        <attr name="tab_size" format="integer" />
+        <attr name="tab_color_normal" format="color" />
+        <attr name="tab_color_selected" format="color" />
+        <attr name="tab_text_color_normal" format="color" />
+        <attr name="tab_text_color_selected" format="color" />
+        <attr name="tab_radius" format="dimension"/>
+        <attr name="tab_stork_width" format="dimension"/>
+        <attr name="tab_titles"/>
+    </declare-styleable>
+</resources>
