@@ -126,10 +126,10 @@ class ArrowTab : LinearLayout, View.OnClickListener {
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             setColor(backgroundColor)
+            setPadding(tabStroke, tabStroke, tabStroke, tabStroke)
             when (item) {
                 0 -> cornerRadii = floatArrayOf(tabRadius - (tabRadius/8),tabRadius - (tabRadius/8), 0f, 0f, 0f, 0f, tabRadius - (tabRadius/8),tabRadius - (tabRadius/8))
                 tabSize - 1 -> cornerRadii = floatArrayOf(0f, 0f, tabRadius - (tabRadius/8),tabRadius - (tabRadius/8), tabRadius - (tabRadius/8),tabRadius - (tabRadius/8), 0f, 0f)
-                else -> setPadding(tabStroke, tabStroke, tabStroke, tabStroke)
             }
         }
     }
