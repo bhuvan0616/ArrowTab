@@ -188,7 +188,7 @@ class ArrowTab : LinearLayout, View.OnClickListener {
 
     fun setSelection(position: Int) {
         if (position < tabSize) getChildAt(tabPositions[position]).post {
-            getChildAt(position).performClick()
+            getChildAt(tabPositions[position]).performClick()
         }
     }
 
