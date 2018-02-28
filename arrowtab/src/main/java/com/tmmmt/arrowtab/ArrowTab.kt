@@ -7,15 +7,17 @@ import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.text.TextUtils
 import android.util.AttributeSet
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewAnimationUtils
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.TableLayout
 import android.widget.TextView
+import java.util.*
 
 /**
  * Created by Bhuvanesh BS on 23/1/18.
@@ -32,9 +34,11 @@ class ArrowTab : LinearLayout, View.OnClickListener {
     private var tabTextColorNormal = Color.parseColor("black")
     private var tabTextColorSelected = Color.parseColor("white")
     private var tabTitles: Array<CharSequence>? = null
+    private var tabPositions: ArrayList<Int> = arrayListOf(0, 1)
     private var selectedItem = -1 // fist item selected initially
     private var selectionListenerInterface: SelectionListener? = null
     private var selectionListenerFunction: ((which: Int) -> Unit)? = null
+    private var isRtl = false
 
     private var tabSize = 2
         set(value) {
@@ -60,9 +64,11 @@ class ArrowTab : LinearLayout, View.OnClickListener {
     private fun buildUi(context: Context, attr: AttributeSet?) {
         val typedArray = context.theme.obtainStyledAttributes(attr, R.styleable.ArrowTab, 0, 0)
         getValues(typedArray)
+        setupRtlMode()
         dividerDrawable = createDivider(tabColorSelected)
         background = createStroke(tabColorSelected)
         showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
+        layoutDirection = View.LAYOUT_DIRECTION_LTR
         for (i in 0 until tabSize) {
             val tvNormal = TextView(context).apply {
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
@@ -90,6 +96,14 @@ class ArrowTab : LinearLayout, View.OnClickListener {
         }
     }
 
+    private fun setupRtlMode() {
+        if (TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_RTL) {
+            tabTitles?.reverse()
+            tabPositions.reverse()
+            isRtl = true
+        }
+    }
+
     private fun getValues(typedArray: TypedArray) {
         tabSize = typedArray.getInt(R.styleable.ArrowTab_tab_size, 2)
         tabRadius = typedArray.getDimension(R.styleable.ArrowTab_tab_radius, 2f)
@@ -101,6 +115,12 @@ class ArrowTab : LinearLayout, View.OnClickListener {
 
         try {
             tabTitles = typedArray.getTextArray(R.styleable.ArrowTab_tab_titles)
+            if (tabTitles !== null) {
+                val size = tabTitles?.size ?: 0
+                tabPositions.clear()
+                for (i in 0 until tabSize) tabPositions.add(i)
+                Log.d(ArrowTab::class.java.simpleName, "Tab Positions Created: "+tabPositions)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -127,9 +147,11 @@ class ArrowTab : LinearLayout, View.OnClickListener {
             shape = GradientDrawable.RECTANGLE
             setColor(backgroundColor)
             setPadding(tabStroke, tabStroke, tabStroke, tabStroke)
+            val cornerRadius = tabRadius - (tabRadius / 8)
+
             when (item) {
-                0 -> cornerRadii = floatArrayOf(tabRadius - (tabRadius/8),tabRadius - (tabRadius/8), 0f, 0f, 0f, 0f, tabRadius - (tabRadius/8),tabRadius - (tabRadius/8))
-                tabSize - 1 -> cornerRadii = floatArrayOf(0f, 0f, tabRadius - (tabRadius/8),tabRadius - (tabRadius/8), tabRadius - (tabRadius/8),tabRadius - (tabRadius/8), 0f, 0f)
+                0 -> cornerRadii = floatArrayOf(cornerRadius, cornerRadius, 0f, 0f, 0f, 0f, cornerRadius, cornerRadius)
+                tabSize - 1 -> cornerRadii = floatArrayOf(0f, 0f, cornerRadius, cornerRadius, cornerRadius, cornerRadius, 0f, 0f)
             }
         }
     }
@@ -161,17 +183,15 @@ class ArrowTab : LinearLayout, View.OnClickListener {
             circleReveal(direction, duration = 500)
         }
         selectedItem = currentSelection
-        val selectedTab = getSelectedTabPosition(currentSelection)
+        val selectedTab = tabPositions[indexOfChild(currentItem)]
         selectionListenerInterface?.onTabSelected(selectedTab)
         selectionListenerFunction?.invoke(selectedTab)
-    }
 
-    private fun getSelectedTabPosition(id: Int): Int {
-        return (0 until childCount).firstOrNull { getChildAt(it).id == id } ?: 0
+        Log.d(ArrowTab::class.java.simpleName, selectedTab.toString())
     }
 
     fun setSelection(position: Int) {
-        if (position < tabSize) getChildAt(position).post {
+        if (position < tabSize) getChildAt(tabPositions[position]).post {
             getChildAt(position).performClick()
         }
     }

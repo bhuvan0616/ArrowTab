@@ -15,7 +15,7 @@ ext {
     siteUrl = 'https://github.com/bhuvan0616/ArrowTab'
     gitUrl = 'https://github.com/bhuvan0616/ArrowTab.git'
 
-    libraryVersion = '0.4'
+    libraryVersion = '1.0'
 
     developerId = 'bhuvan0616'
     developerName = 'Bhuvanesh BS'

@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">TabAnimation</string>
+
+    <string-array name="titles">
+        <item>أي شيء</item>
+        <item>لينك</item>
+        <item>مطاعم</item>
+    </string-array>
+</resources>

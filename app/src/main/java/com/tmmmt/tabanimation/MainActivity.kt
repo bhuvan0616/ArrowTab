@@ -9,9 +9,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.my_custom_layout)
 
+        changeAppLanguage(Language.ARABIC)
+
+        setContentView(R.layout.my_custom_layout)
         arrowTab.setSelection(1)
+        arrowTab2.setSelection(0)
     }
 
 }
