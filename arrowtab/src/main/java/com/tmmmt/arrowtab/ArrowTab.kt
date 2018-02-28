@@ -9,7 +9,6 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.text.TextUtils
 import android.util.AttributeSet
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewAnimationUtils
@@ -119,7 +118,6 @@ class ArrowTab : LinearLayout, View.OnClickListener {
                 val size = tabTitles?.size ?: 0
                 tabPositions.clear()
                 for (i in 0 until tabSize) tabPositions.add(i)
-                Log.d(ArrowTab::class.java.simpleName, "Tab Positions Created: "+tabPositions)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -186,8 +184,6 @@ class ArrowTab : LinearLayout, View.OnClickListener {
         val selectedTab = tabPositions[indexOfChild(currentItem)]
         selectionListenerInterface?.onTabSelected(selectedTab)
         selectionListenerFunction?.invoke(selectedTab)
-
-        Log.d(ArrowTab::class.java.simpleName, selectedTab.toString())
     }
 
     fun setSelection(position: Int) {
