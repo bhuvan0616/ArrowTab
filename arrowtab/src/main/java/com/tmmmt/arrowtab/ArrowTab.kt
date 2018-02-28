@@ -7,7 +7,9 @@ import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
+import android.text.TextUtils
 import android.util.AttributeSet
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewAnimationUtils
@@ -15,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import java.util.*
 
 /**
  * Created by Bhuvanesh BS on 23/1/18.
@@ -24,18 +27,18 @@ class ArrowTab : LinearLayout, View.OnClickListener {
 
     private val minTabSize = 2
     private val maxTabSize = 3
-    private var tabRadius = 2
+    private var tabRadius = 2.toPx().toFloat()
     private var tabStroke = 1
     private var tabColorNormal = Color.parseColor("white")
     private var tabColorSelected = Color.parseColor("red")
     private var tabTextColorNormal = Color.parseColor("black")
     private var tabTextColorSelected = Color.parseColor("white")
-    private val tabNormalBackground by lazy { createStroke(tabColorNormal) }
-    private val tabSelectedBackground by lazy { createStroke(tabColorSelected) }
     private var tabTitles: Array<CharSequence>? = null
+    private var tabPositions: ArrayList<Int> = arrayListOf(0, 1)
     private var selectedItem = -1 // fist item selected initially
     private var selectionListenerInterface: SelectionListener? = null
     private var selectionListenerFunction: ((which: Int) -> Unit)? = null
+    private var isRtl = false
 
     private var tabSize = 2
         set(value) {
@@ -61,26 +64,28 @@ class ArrowTab : LinearLayout, View.OnClickListener {
     private fun buildUi(context: Context, attr: AttributeSet?) {
         val typedArray = context.theme.obtainStyledAttributes(attr, R.styleable.ArrowTab, 0, 0)
         getValues(typedArray)
-
+        setupRtlMode()
+        dividerDrawable = createDivider(tabColorSelected)
+        background = createStroke(tabColorSelected)
+        showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE
+        layoutDirection = View.LAYOUT_DIRECTION_LTR
         for (i in 0 until tabSize) {
             val tvNormal = TextView(context).apply {
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 text = tabTitles?.get(i)
-                background = tabNormalBackground
                 gravity = Gravity.CENTER
+                background = createTabBackground(tabColorNormal, i)
                 setTextColor(tabTextColorNormal)
             }
             val tvSelected = TextView(context).apply {
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 text = tabTitles?.get(i)
-                background = tabSelectedBackground
                 gravity = Gravity.CENTER
+                background = createTabBackground(tabColorSelected, i)
                 setTextColor(tabTextColorSelected)
             }
             val frameLayout = FrameLayout(context).apply {
-                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f).apply {
-                    if (i != 0) marginStart = toPx(2)
-                }
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
                 id = 102030 + i
                 setOnClickListener(this@ArrowTab)
                 addView(tvSelected)
@@ -91,14 +96,31 @@ class ArrowTab : LinearLayout, View.OnClickListener {
         }
     }
 
+    private fun setupRtlMode() {
+        if (TextUtils.getLayoutDirectionFromLocale(Locale.getDefault()) == View.LAYOUT_DIRECTION_RTL) {
+            tabTitles?.reverse()
+            tabPositions.reverse()
+            isRtl = true
+        }
+    }
+
     private fun getValues(typedArray: TypedArray) {
         tabSize = typedArray.getInt(R.styleable.ArrowTab_tab_size, 2)
+        tabRadius = typedArray.getDimension(R.styleable.ArrowTab_tab_radius, 2f)
+        tabStroke = typedArray.getDimension(R.styleable.ArrowTab_tab_stork_width, 1f).toInt().toPx()
         tabColorNormal = typedArray.getColor(R.styleable.ArrowTab_tab_color_normal, Color.parseColor("white"))
         tabColorSelected = typedArray.getColor(R.styleable.ArrowTab_tab_color_selected, Color.parseColor("red"))
         tabTextColorNormal = typedArray.getColor(R.styleable.ArrowTab_tab_text_color_normal, Color.parseColor("black"))
         tabTextColorSelected = typedArray.getColor(R.styleable.ArrowTab_tab_text_color_selected, Color.parseColor("white"))
+
         try {
             tabTitles = typedArray.getTextArray(R.styleable.ArrowTab_tab_titles)
+            if (tabTitles !== null) {
+                val size = tabTitles?.size ?: 0
+                tabPositions.clear()
+                for (i in 0 until tabSize) tabPositions.add(i)
+                Log.d(ArrowTab::class.java.simpleName, "Tab Positions Created: "+tabPositions)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -108,11 +130,32 @@ class ArrowTab : LinearLayout, View.OnClickListener {
     private fun createStroke(backgroundColor: Int): GradientDrawable {
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            setColor(backgroundColor)
-            setStroke(toPx(tabStroke), tabColorSelected)
-            cornerRadius = toPx(tabRadius).toFloat()
+            setStroke(tabStroke, backgroundColor)
+            cornerRadii = floatArrayOf(tabRadius, tabRadius, tabRadius, tabRadius, tabRadius, tabRadius, tabRadius, tabRadius)
         }
     }
+
+    private fun createDivider(backgroundColor: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            setColor(backgroundColor)
+            setSize(tabStroke, 0)
+        }
+    }
+
+    private fun createTabBackground(backgroundColor: Int, item: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(backgroundColor)
+            setPadding(tabStroke, tabStroke, tabStroke, tabStroke)
+            val cornerRadius = tabRadius - (tabRadius / 8)
+
+            when (item) {
+                0 -> cornerRadii = floatArrayOf(cornerRadius, cornerRadius, 0f, 0f, 0f, 0f, cornerRadius, cornerRadius)
+                tabSize - 1 -> cornerRadii = floatArrayOf(0f, 0f, cornerRadius, cornerRadius, cornerRadius, cornerRadius, 0f, 0f)
+            }
+        }
+    }
+
 
     override fun onClick(v: View) {
         changeSelection(selectedItem, v.id)
@@ -140,17 +183,17 @@ class ArrowTab : LinearLayout, View.OnClickListener {
             circleReveal(direction, duration = 500)
         }
         selectedItem = currentSelection
-        val selectedTab = getSelectedTabPosition(currentSelection)
+        val selectedTab = tabPositions[indexOfChild(currentItem)]
         selectionListenerInterface?.onTabSelected(selectedTab)
         selectionListenerFunction?.invoke(selectedTab)
-    }
 
-    private fun getSelectedTabPosition(id: Int): Int {
-        return (0 until childCount).firstOrNull { getChildAt(it).id == id } ?: 0
+        Log.d(ArrowTab::class.java.simpleName, selectedTab.toString())
     }
 
     fun setSelection(position: Int) {
-        if (position < tabSize) getChildAt(position).performClick()
+        if (position < tabSize) getChildAt(tabPositions[position]).post {
+            getChildAt(position).performClick()
+        }
     }
 
     fun setSelectionListener(selectionListener: SelectionListener) {
@@ -212,9 +255,9 @@ class ArrowTab : LinearLayout, View.OnClickListener {
         }
     }
 
-    private fun toPx(dp: Int): Int = (dp * Resources.getSystem().displayMetrics.density).toInt()
+    private fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
 
-    private fun toDp(px: Int): Int = (px / Resources.getSystem().displayMetrics.density).toInt()
+    private fun Int.toDp(): Int = (this / Resources.getSystem().displayMetrics.density).toInt()
 
     enum class Direction {
         TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT, CENTER

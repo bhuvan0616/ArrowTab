@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">TabAnimation</string>
+
+    <string-array name="titles">
+        <item>First Item</item>
+        <item>Second Item</item>
+        <item>Third Item</item>
+    </string-array>
+</resources>
