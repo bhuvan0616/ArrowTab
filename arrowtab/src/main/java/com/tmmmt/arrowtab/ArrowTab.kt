@@ -191,8 +191,8 @@ class ArrowTab : LinearLayout, View.OnClickListener {
 
     fun setSelection(position: Int, ignoreListener: Boolean = false) {
         if (position < tabSize) getChildAt(tabPositions[position]).post {
-            getChildAt(tabPositions[position]).performClick()
             isListenable = ignoreListener.not()
+            getChildAt(tabPositions[position]).performClick()
         }
     }
 
