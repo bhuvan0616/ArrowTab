@@ -37,6 +37,7 @@ class ArrowTab : LinearLayout, View.OnClickListener {
     private var selectedItem = -1 // fist item selected initially
     private var selectionListenerInterface: SelectionListener? = null
     private var selectionListenerFunction: ((which: Int) -> Unit)? = null
+    private var isListenable: Boolean = true
     private var isRtl = false
 
     private var tabSize = 2
@@ -182,13 +183,16 @@ class ArrowTab : LinearLayout, View.OnClickListener {
         }
         selectedItem = currentSelection
         val selectedTab = tabPositions[indexOfChild(currentItem)]
-        selectionListenerInterface?.onTabSelected(selectedTab)
-        selectionListenerFunction?.invoke(selectedTab)
+        if (isListenable) {
+            selectionListenerInterface?.onTabSelected(selectedTab)
+            selectionListenerFunction?.invoke(selectedTab)
+        } else isListenable = true
     }
 
-    fun setSelection(position: Int) {
+    fun setSelection(position: Int, ignoreListener: Boolean = false) {
         if (position < tabSize) getChildAt(tabPositions[position]).post {
             getChildAt(tabPositions[position]).performClick()
+            isListenable = ignoreListener.not()
         }
     }
 
