@@ -39,6 +39,8 @@ class ArrowTab : LinearLayout, View.OnClickListener {
     private var selectionListenerFunction: ((which: Int) -> Unit)? = null
     private var isListenable: Boolean = true
     private var isRtl = false
+    private var isAnimationEnabled = true
+    private var animationDuration: Long = -1
 
     private var tabSize = 2
         set(value) {
@@ -112,6 +114,8 @@ class ArrowTab : LinearLayout, View.OnClickListener {
         tabColorSelected = typedArray.getColor(R.styleable.ArrowTab_tab_color_selected, Color.parseColor("red"))
         tabTextColorNormal = typedArray.getColor(R.styleable.ArrowTab_tab_text_color_normal, Color.parseColor("black"))
         tabTextColorSelected = typedArray.getColor(R.styleable.ArrowTab_tab_text_color_selected, Color.parseColor("white"))
+        isAnimationEnabled = typedArray.getBoolean(R.styleable.ArrowTab_tab_animation_enabled, true)
+        animationDuration = typedArray.getInteger(R.styleable.ArrowTab_tab_animation_duration, -1).toLong()
 
         try {
             tabTitles = typedArray.getTextArray(R.styleable.ArrowTab_tab_titles)
@@ -175,11 +179,11 @@ class ArrowTab : LinearLayout, View.OnClickListener {
 
         lastItem?.getChildAt(0)?.apply {
             bringToFront()
-            circleReveal(direction, duration = 500)
+            if (isAnimationEnabled) circleReveal(direction)
         }
         currentItem?.getChildAt(0)?.apply {
             bringToFront()
-            circleReveal(direction, duration = 500)
+            if (isAnimationEnabled) circleReveal(direction)
         }
         selectedItem = currentSelection
         val selectedTab = tabPositions[indexOfChild(currentItem)]
@@ -205,7 +209,7 @@ class ArrowTab : LinearLayout, View.OnClickListener {
     }
 
     @SuppressLint("NewApi")
-    private fun View.circleReveal(direction: Direction = Direction.CENTER, duration: Long = -1) {
+    private fun View.circleReveal(direction: Direction = Direction.CENTER, duration: Long = animationDuration) {
         var cx = width / 2
         var cy = height / 2
         var finalRadius = Math.hypot(width.toDouble(), height.toDouble()).toFloat()
@@ -244,7 +248,7 @@ class ArrowTab : LinearLayout, View.OnClickListener {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 val anim = ViewAnimationUtils.createCircularReveal(this, cx, cy, 0f, finalRadius)
-                if (duration != (-1).toLong()) anim.duration = duration
+                if (duration > (-1).toLong()) anim.duration = duration
                 this.visibility = View.VISIBLE
                 anim.start()
             } else

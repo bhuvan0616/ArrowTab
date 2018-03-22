@@ -23,5 +23,6 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation project(':arrowtab')
+//    implementation project(':arrowtab')
+    implementation 'com.tmmmt.library:arrowtab:1.4'
 }
